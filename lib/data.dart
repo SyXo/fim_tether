@@ -53,8 +53,8 @@ class Story extends Object with JSONCoding, EventEmitter {
   String description = '';
   String imageURL = '';
   String fullImageURL = '';
-  Set<String> categories = new Set();
-  Set<String> characters = new Set();
+  List<String> categories = new List();
+  List<String> characters = new List();
   Map<String, int> stats = new Map();
   int status = 0;
   int contentRating = 0;
@@ -94,8 +94,8 @@ class Story extends Object with JSONCoding, EventEmitter {
     description = coder.decodeString(forKey: 'description');
     imageURL = coder.decodeString(forKey: 'imageURL');
     fullImageURL = coder.decodeString(forKey: 'fullImageURL');
-    categories = new Set.from(coder.decodeList(forKey: 'categories'));
-    characters = new Set.from(coder.decodeList(forKey: 'characters'));
+    categories = coder.decodeList(forKey: 'categories');
+    characters = coder.decodeList(forKey: 'characters');
     stats = coder.decodeMap(forKey: 'stats');
     status = coder.decodeNum(forKey: 'status');
     contentRating = coder.decodeNum(forKey: 'contentRating');
@@ -163,6 +163,17 @@ class Story extends Object with JSONCoding, EventEmitter {
         stats['comments'] = story['comments'];
         likes = story['likes'];
         dislikes = story['dislikes'];
+
+        categories.clear();
+
+        Map<String, bool> storyCategories = story['categories'];
+        for (String category in storyCategories.keys) {
+          if (storyCategories[category]) {
+            categories.add(category);
+          }
+        }
+
+        // TODO: characters?
 
         saveToStorage();
         emit('update', this);

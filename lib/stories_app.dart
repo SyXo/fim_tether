@@ -43,16 +43,15 @@ class AddStoryActionButton extends StatelessWidget {
             title: new Text('Add Story'),
             children: <Widget>[
               new Container(
-                padding: new EdgeInsets.all(8.0),
-                child: new TextField(
-                  onSubmitted: (String value) {
-                    storiesAppState.setState(() {
-                      storiesAppState._stories
-                          .add(new Story(id: int.parse(value)));
-                    });
-                  },
-                )
-              )
+                  padding: new EdgeInsets.all(8.0),
+                  child: new TextField(
+                    onSubmitted: (String value) {
+                      storiesAppState.setState(() {
+                        storiesAppState._stories
+                            .add(new Story(id: int.parse(value)));
+                      });
+                    },
+                  ))
             ],
           );
           showDialog(context: context, child: dialog);

@@ -73,7 +73,23 @@ class StoryViewState extends State<StoryView> {
             new Expanded(
                 child: new Text(_story.summary, overflow: TextOverflow.fade))
           ],
-        )
+        ),
+        new Container(
+            height: 30.0,
+            child: new ListView.builder(
+                padding: new EdgeInsets.all(8.0),
+                scrollDirection: Axis.horizontal,
+                itemCount: _story.categories.length + _story.characters.length,
+                itemBuilder: (BuildContext context, int index) {
+                  String item;
+                  if (index > _story.categories.length - 1) {
+                    item = _story.characters[index - _story.categories.length];
+                  } else
+                    item = _story.categories[index];
+                  return new Container(
+                      padding: new EdgeInsets.symmetric(horizontal: 8.0),
+                      child: new Text(item));
+                }))
       ],
     );
   }
