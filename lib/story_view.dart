@@ -20,7 +20,7 @@ class StoryViewState extends State<StoryView> {
     super.initState();
 
     // HACK, TODO: use events
-    _story.loadFromNetwork().then((Null) {
+    _story.load().then((Null) {
       setState(() {});
     });
   }

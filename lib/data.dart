@@ -3,51 +3,49 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+import 'json_coder.dart';
 
-class User {
+class User extends Object with JSONCoding {
   int id;
   String name;
 
   User({this.id, this.name});
 
-  Map<String, dynamic> toJson() {
-    Map data = new Map<String, dynamic>();
-    data['id'] = id;
-    data['name'] = name;
-    return data;
+  void encode(JSONCoder coder) {
+    coder.encode(id, forKey: 'id');
+    coder.encode(name, forKey: 'name');
   }
 
-  void fromJson(Map data) {
-    id = data['id'];
-    name = data['name'];
+  void decode(JSONCoder coder) {
+    id = coder.decodeNum(forKey: 'id');
+    name = coder.decodeString(forKey: 'name');
   }
 }
 
-class Chapter {
+class Chapter extends Object with JSONCoding {
   int id;
   String title;
   Map<String, int> stats;
   DateTime modified;
 
-  Map<String, dynamic> toJson () {
-    Map data = new Map<String, dynamic>();
-    data['id'] = id;
-    data['title'] = title;
-    data['stats'] = stats;
-    data['modified'] = modified.toIso8601String();
-    return data;
+  void encode(JSONCoder coder) {
+    coder.encode(id, forKey: 'id');
+    coder.encode(title, forKey: 'title');
+    coder.encode(stats, forKey: 'stats');
+    coder.encode(modified, forKey: 'modified');
   }
-  void fromJson(Map data) {
-    id = data['id'];
-    title = data['title'];
-    stats = data['stats'];
-    modified = DateTime.parse(data['modified']);
+
+  void decode(JSONCoder coder) {
+    id = coder.decodeNum(forKey: 'id');
+    title = coder.decodeString(forKey: 'title');
+    stats = coder.decodeMap(forKey: 'stats');
+    modified = coder.decodeDateTime(forKey: 'modified');
   }
 }
 
 var storyLoader = createHttpClient();
 
-class Story extends Object {
+class Story extends Object with JSONCoding {
   int id = 0;
   String title = '';
   String summary = '';
@@ -68,61 +66,56 @@ class Story extends Object {
 
   Story({this.id});
 
-  // TODO: do this in a less awful way
-  Map<String, dynamic> toJson() {
-    Map data = new Map<String, dynamic>();
-    data['id'] = id;
-    data['title'] = title;
-    data['summary'] = summary;
-    data['description'] = description;
-    data['imageURL'] = imageURL;
-    data['fullImageURL'] = fullImageURL;
-    data['categories'] = categories;
-    data['characters'] = characters;
-    data['stats'] = stats;
-    data['status'] = status;
-    data['contentRating'] = contentRating;
-    data['author'] = author;
-    if (published != null) data['published'] = published.toIso8601String();
-    if (modified != null) data['modified'] = modified.toIso8601String();
-    data['chapters'] = chapters;
-    data['likes'] = likes;
-    data['dislikes'] = dislikes;
-    return data;
+  void encode(JSONCoder coder) {
+    coder.encode(id, forKey: 'id');
+    coder.encode(title, forKey: 'title');
+    coder.encode(summary, forKey: 'summary');
+    coder.encode(description, forKey: 'description');
+    coder.encode(imageURL, forKey: 'imageURL');
+    coder.encode(fullImageURL, forKey: 'fullImageURL');
+    coder.encode(categories, forKey: 'categories');
+    coder.encode(characters, forKey: 'characters');
+    coder.encode(stats, forKey: 'stats');
+    coder.encode(status, forKey: 'status');
+    coder.encode(contentRating, forKey: 'contentRating');
+    coder.encode(author, forKey: 'author');
+    coder.encode(published, forKey: 'published');
+    coder.encode(modified, forKey: 'modified');
+    coder.encode(chapters, forKey: 'chapters');
+    coder.encode(likes, forKey: 'likes');
+    coder.encode(dislikes, forKey: 'dislikes');
   }
 
-  void fromJson(Map data) {
-    id = data['id'];
-    title = data['title'];
-    summary = data['summary'];
-    description = data['description'];
-    imageURL = data['imageURL'];
-    fullImageURL = data['fullImageURL'];
-    categories = data['categories'];
-    characters = data['characters'];
-    stats = data['stats'];
-    status = data['status'];
-    contentRating = data['contentRating'];
-    author = new User()..fromJson(data['author']);
-    if (data['published']) published = DateTime.parse(data['published']);
-    if (data['modified']) modified = DateTime.parse(data['modified']);
-    chapters = data['chapters'].map((chapter) {
-      return new Chapter()..fromJson(chapter);
-    });
-    likes = data['likes'];
-    dislikes = data['dislikes'];
+  void decode(JSONCoder coder) {
+    id = coder.decodeNum(forKey: 'id');
+    title = coder.decodeString(forKey: 'title');
+    summary = coder.decodeString(forKey: 'summary');
+    description = coder.decodeString(forKey: 'description');
+    imageURL = coder.decodeString(forKey: 'imageURL');
+    fullImageURL = coder.decodeString(forKey: 'fullImageURL');
+    categories = new Set.from(coder.decodeList(forKey: 'categories'));
+    characters = new Set.from(coder.decodeList(forKey: 'characters'));
+    stats = coder.decodeMap(forKey: 'stats');
+    status = coder.decodeNum(forKey: 'status');
+    chapters = coder.decodeList<Chapter>(
+        forKey: 'chapters',
+        decodeItem: (dynamic item) {
+          return new Chapter()..decode(new JSONCoder()..data = item);
+        });
+    likes = coder.decodeNum(forKey: 'likes');
+    dislikes = coder.decodeNum(forKey: 'dislikes');
   }
 
   Future<File> _getStorageFile() async {
     String directory = (await getApplicationDocumentsDirectory()).path;
-    return new File('$directory/story/$id');
+    return new File('$directory/story-$id');
   }
 
   Future<Null> loadFromStorage() async {
     try {
       File file = await _getStorageFile();
       String contents = await file.readAsString();
-      fromJson(JSON.decode(contents));
+      decode(new JSONCoder()..data = JSON.decode(contents));
     } on FileSystemException {
       // TODO: possibly handle error
     }
@@ -131,7 +124,9 @@ class Story extends Object {
   Future<Null> saveToStorage() async {
     try {
       File file = await _getStorageFile();
-      file.writeAsString(JSON.encode(this.toJson()));
+      JSONCoder coder = new JSONCoder();
+      encode(coder);
+      file.writeAsString(JSON.encode(coder));
     } on FileSystemException {
       // TODO: possibly handle error
     }
@@ -163,11 +158,13 @@ class Story extends Object {
         stats['comments'] = story['comments'];
         likes = story['likes'];
         dislikes = story['dislikes'];
+
+        saveToStorage();
       }
     }
   }
 
-  Future<Null> load () {
+  Future<Null> load() {
     Future storage = loadFromStorage();
     Future network = loadFromNetwork();
     return Future.any([storage, network]);
