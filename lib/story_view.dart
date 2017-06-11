@@ -66,7 +66,7 @@ class StoryViewState extends State<StoryView> {
             new Container(
               padding: new EdgeInsets.all(4.0),
               width: 100.0,
-              child: _story.imageURL != ''
+              child: (_story.imageURL != null && _story.imageURL != '')
                   ? new Image.network(_story.imageURL)
                   : new Container(),
             ),
