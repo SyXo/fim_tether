@@ -26,7 +26,7 @@ class User extends Object with JSONCoding {
 class Chapter extends Object with JSONCoding {
   int id;
   String title;
-  Map<String, int> stats;
+  Map<String, int> stats = new Map();
   DateTime modified;
 
   void encode(JSONCoder coder) {
@@ -171,6 +171,18 @@ class Story extends Object with JSONCoding, EventEmitter {
           if (storyCategories[category]) {
             categories.add(category);
           }
+        }
+
+        List storyChapters = story['chapters'];
+        chapters.clear();
+        for (Map chapter in storyChapters) {
+          chapters.add(new Chapter()
+            ..id = chapter['id']
+            ..title = chapter['title']
+            ..stats['words'] = chapter['words']
+            ..stats['views'] = chapter['views']
+            ..modified = new DateTime.fromMillisecondsSinceEpoch(
+                chapter['date_modified'] * 1000));
         }
 
         // TODO: characters?

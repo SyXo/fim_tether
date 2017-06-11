@@ -15,7 +15,7 @@ class JSONCoder {
       // for some weird reason, lists need to be re-created
       List objectified = new List();
       for (dynamic item in data) {
-        objectified.add(item);
+        objectified.add(objectify(item));
       }
       return objectified;
     } else if (data is Map) {
