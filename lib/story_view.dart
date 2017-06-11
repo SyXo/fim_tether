@@ -19,9 +19,11 @@ class StoryViewState extends State<StoryView> {
   void initState () {
     super.initState();
 
-    // HACK, TODO: use events
-    _story.load().then((Null) {
-      setState(() {});
+    _story.load();
+    _story.on('update', (Null) {
+      setState(() {
+        // HACK
+      });
     });
   }
 

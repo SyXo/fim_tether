@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
 import 'json_coder.dart';
+import 'event_emitter.dart';
 
 class User extends Object with JSONCoding {
   int id;
@@ -45,7 +46,7 @@ class Chapter extends Object with JSONCoding {
 
 var storyLoader = createHttpClient();
 
-class Story extends Object with JSONCoding {
+class Story extends Object with JSONCoding, EventEmitter {
   int id = 0;
   String title = '';
   String summary = '';
@@ -97,6 +98,8 @@ class Story extends Object with JSONCoding {
     characters = new Set.from(coder.decodeList(forKey: 'characters'));
     stats = coder.decodeMap(forKey: 'stats');
     status = coder.decodeNum(forKey: 'status');
+    contentRating = coder.decodeNum(forKey: 'contentRating');
+    author = coder.decodeObject(forKey: 'author', template: new User());
     chapters = coder.decodeList<Chapter>(
         forKey: 'chapters',
         decodeItem: (dynamic item) {
@@ -116,6 +119,8 @@ class Story extends Object with JSONCoding {
       File file = await _getStorageFile();
       String contents = await file.readAsString();
       decode(new JSONCoder()..data = JSON.decode(contents));
+
+      emit('update', this);
     } on FileSystemException {
       // TODO: possibly handle error
     }
@@ -160,6 +165,7 @@ class Story extends Object with JSONCoding {
         dislikes = story['dislikes'];
 
         saveToStorage();
+        emit('update', this);
       }
     }
   }
