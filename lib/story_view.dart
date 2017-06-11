@@ -16,15 +16,24 @@ class StoryViewState extends State<StoryView> {
   StoryViewState(this._story);
 
   @override
-  void initState () {
+  void initState() {
     super.initState();
 
     _story.load();
-    _story.on('update', (Null) {
-      setState(() {
-        // HACK
-      });
+    _story.on('update', updateHandler);
+  }
+
+  void updateHandler(Null) {
+    setState(() {
+      // HACK
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    _story.off('update', updateHandler);
   }
 
   @override
@@ -62,8 +71,7 @@ class StoryViewState extends State<StoryView> {
                   : new Container(),
             ),
             new Expanded(
-                child:
-                    new Text(_story.summary, overflow: TextOverflow.fade))
+                child: new Text(_story.summary, overflow: TextOverflow.fade))
           ],
         )
       ],
