@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'story.dart';
+import 'chapter.dart';
 import 'data.dart';
 
 class StoryDetail extends StatelessWidget {
@@ -38,7 +38,10 @@ class StoryDetail extends StatelessWidget {
                 trailing: new IconButton(
                     icon: new Icon(Icons.cloud_download), onPressed: () {}),
                 onTap: () {
-                  // todo
+                  Navigator.of(context).push(
+                      new MaterialPageRoute(builder: (BuildContext context) {
+                    return new ChapterView(chapter: story.chapters[index]);
+                  }));
                 });
           }
         }))

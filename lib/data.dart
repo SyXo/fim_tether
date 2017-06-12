@@ -23,11 +23,13 @@ class User extends Object with JSONCoding {
   }
 }
 
-class Chapter extends Object with JSONCoding {
+class Chapter extends Object with JSONCoding, EventEmitter {
   int id;
   String title;
   Map<String, int> stats = new Map();
   DateTime modified;
+
+  String content = '';
 
   void encode(JSONCoder coder) {
     coder.encode(id, forKey: 'id');
@@ -41,6 +43,56 @@ class Chapter extends Object with JSONCoding {
     title = coder.decodeString(forKey: 'title');
     stats = coder.decodeMap(forKey: 'stats');
     modified = coder.decodeDateTime(forKey: 'modified');
+  }
+
+  Future<File> _getStorageFile() async {
+    String directory = (await getApplicationDocumentsDirectory()).path;
+    return new File('$directory/chapter-$id');
+  }
+
+  Future<Null> loadFromStorage() async {
+    try {
+      File file = await _getStorageFile();
+      content = await file.readAsString();
+      emit('update', this);
+    } on FileSystemException {
+      // TODO: possibly handle error
+    }
+  }
+
+  Future<Null> saveToStorage() async {
+    try {
+      File file = await _getStorageFile();
+      file.writeAsString(content);
+    } on FileSystemException {
+      // TODO: possibly handle error
+    }
+  }
+
+  Future<Null> loadFromNetwork() async {
+    // TODO: rich text
+    var res = await storyLoader.get('https://fimfiction'
+        '.net/chapters/download/$id/txt');
+    if (res.statusCode != 200) {
+      // TODO: something
+    } else {
+      List<String> lines = res.body.split(new RegExp(r"\n"));
+      content = '';
+      bool canAdd = false;
+      for (String line in lines) {
+        if (!line.startsWith('//')) canAdd = true;
+        if (canAdd) content += line + '\n';
+      }
+      content = content.trim();
+      saveToStorage();
+      emit('update', this);
+    }
+  }
+
+  Future<Null> load() {
+    Future storage = loadFromStorage();
+    Future network = loadFromNetwork();
+    return Future.any([storage, network]);
   }
 }
 
