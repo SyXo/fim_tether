@@ -36,7 +36,9 @@ class EventEmitter {
 
   void emitAll(Map listeners, String event, dynamic data) {
     _ensureEventNameIn(_eventListeners, event);
-    for (Function handler in _eventListeners[event]) {
+
+    // Function type doesn't please the static type checker
+    for (dynamic handler in _eventListeners[event]) {
       try {
         handler(data);
       } catch (err) {
